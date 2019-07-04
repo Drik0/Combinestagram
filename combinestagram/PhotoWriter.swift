@@ -45,10 +45,12 @@ class PhotoWriter {
         let request = PHAssetChangeRequest.creationRequestForAsset(from: image)
         savedAssetID = request.placeholderForCreatedAsset?.localIdentifier
       }, completionHandler: { (success, error) in
-        if success, let id = savedAssetID {
-          single(.success(id))
-        } else {
-          single(.error(error ?? Errors.couldNotSavePhoto))
+        DispatchQueue.main.async {
+          if success, let id = savedAssetID {
+            single(.success(id))
+          } else {
+            single(.error(error ?? Errors.couldNotSavePhoto))
+          } 
         }
       })
       return Disposables.create()
