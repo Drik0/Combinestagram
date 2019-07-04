@@ -36,24 +36,41 @@ class PhotoWriter {
     case couldNotSavePhoto
   }
 
-  static func save(_ image: UIImage) -> Observable<String> {
-    return Observable.create({ observer -> Disposable in
-      var savedAssedID: String?
+  static func save(_ image: UIImage) -> Single<String> {
+    return Single.create { single -> Disposable in
+      
+      var savedAssetID: String?
+      
       PHPhotoLibrary.shared().performChanges({
         let request = PHAssetChangeRequest.creationRequestForAsset(from: image)
-        savedAssedID = request.placeholderForCreatedAsset?.localIdentifier
-      }, completionHandler: { success, error in
-        DispatchQueue.main.async {
-          if success, let id = savedAssedID {
-            observer.onNext(id)
-            observer.onCompleted()
-          } else {
-            observer.onError(error ?? Errors.couldNotSavePhoto)
-          }
+        savedAssetID = request.placeholderForCreatedAsset?.localIdentifier
+      }, completionHandler: { (success, error) in
+        if success, let id = savedAssetID {
+          single(.success(id))
+        } else {
+          single(.error(error ?? Errors.couldNotSavePhoto))
         }
       })
       return Disposables.create()
-    })
+    }
+    
+//    return Observable.create({ observer -> Disposable in
+//      var savedAssedID: String?
+//      PHPhotoLibrary.shared().performChanges({
+//        let request = PHAssetChangeRequest.creationRequestForAsset(from: image)
+//        savedAssedID = request.placeholderForCreatedAsset?.localIdentifier
+//      }, completionHandler: { success, error in
+//        DispatchQueue.main.async {
+//          if success, let id = savedAssedID {
+//            observer.onNext(id)
+//            observer.onCompleted()
+//          } else {
+//            observer.onError(error ?? Errors.couldNotSavePhoto)
+//          }
+//        }
+//      })
+//      return Disposables.create()
+//    })
   }
 
 }
