@@ -64,12 +64,38 @@ class MainViewController: UIViewController {
   }
 
   @IBAction func actionSave() {
-
+    guard let image = imagePreview.image else { return }
+    
+    PhotoWriter.save(image)
+      .asSingle()
+      .subscribe(
+        onSuccess: { [weak self] id in
+          self?.showMessage("Saved ID: \(id)")
+          self?.actionClear()
+      },
+        onError: { [weak self] error in
+          self?.showMessage("Error", description: error.localizedDescription)
+      })
+      .disposed(by: bag)
   }
 
   @IBAction func actionAdd() {
-    let newImages = images.value + [UIImage(named: "IMG_1907.jpg")!]
-    images.accept(newImages)
+    //let newImages = images.value + [UIImage(named: "IMG_1907.jpg")!]
+    
+    let photosViewController = storyboard?.instantiateViewController(withIdentifier: "PhotosViewController") as!
+      PhotosViewController
+    
+    photosViewController.selectedPhotos.subscribe(
+      onNext: { [weak self] newImage in
+        guard let images = self?.images else { return }
+        images.accept(images.value + [newImage])
+    },
+      onDisposed: { print("Completed photo selection") })
+      .disposed(by: bag)
+    
+    navigationController!.pushViewController(photosViewController, animated: true)
+    
+//    images.accept(newImages)
   }
 
   func showMessage(_ title: String, description: String? = nil) {
